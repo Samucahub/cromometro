@@ -1,0 +1,175 @@
+Criar Projeto:
+nest new semstress
+
+cd semstress
+
+
+Apagar:
+src/
+├── app.controller.ts ❌
+├── app.service.ts ❌
+
+Instalar:
+npm install @nestjs/config
+npm install class-validator class-transformer
+
+
+.env:
+PORT=3000
+DATABASE_URL="postgresql://semstress:semstress@localhost:5432/semstress"
+JWT_SECRET=jwt_zemamatudo
+JWT_EXPIRES_IN=1d
+
+.env.example:
+PORT=
+DATABASE_URL=
+JWT_SECRET=
+JWT_EXPIRES_IN=
+
+Testar:
+npm run start:dev
+
+Subir a DB:
+docker compose up -d
+
+E Verificar:
+docker ps
+
+
+Instalar Prisma:
+npm install prisma --save-dev
+npm install @prisma/client
+
+Iniciar:
+npx prisma init
+
+E vai criar:
+prisma/
+├── schema.prisma
+
+Depois de configurar o schema.prisma, criar a primeira migration:
+npx prisma migrate dev --name init
+
+
+Depois editar src/common/prisma/prisma.service.ts e src/common/prisma/prisma.module.ts
+
+Atualizar app.module.ts
+
+
+Um teste rápido:
+npm run start:dev
+
+
+
+
+-Agora o AUTH:
+
+Instalar dependências:
+npm install @nestjs/jwt @nestjs/passport passport passport-jwt bcrypt
+npm install -D @types/bcrypt @types/passport-jwt
+
+
+Criar módulos:
+nest g module auth
+nest g controller auth
+nest g service auth
+
+A estrutura:
+src/auth/
+├── auth.controller.ts
+├── auth.service.ts
+├── auth.module.ts
+├── jwt.strategy.ts
+└── dto/
+    ├── login.dto.ts
+    └── register.dto.ts
+
+
+Editar os DTOs, editar o AuthService, o AuthController, JWT Strategy e AuthModue
+
+Agora editar o JWT Guard + CurrentUser em common/guards e common/decorators
+
+Atualizar app.module.ts
+
+
+
+-Fase final do Backend:
+
+Intership:
+
+Criar módulos:
+nest g module internship
+nest g controller internship
+nest g service internship
+
+Editar internship/dto/upsert-internship.dto.ts
+
+Editar Service + Controller
+
+
+Tasks:
+
+Criar Módulos:
+nest g module tasks
+nest g controller tasks
+nest g service tasks
+
+Editar tasks/dto/create-task.dto.ts
+
+Editar Service + Controller
+
+
+Time Entries:
+
+Criar Módulos:
+nest g module time-entries
+nest g controller time-entries
+nest g service time-entries
+
+
+Editar time-entries/dto/create-time-entry.dto.ts
+
+Editar Service + Controller
+
+
+Reports:
+
+Criar Módulos:
+nest g module reports
+nest g controller reports
+nest g service reports
+
+
+Editar Service + Controller
+
+
+-FRONTEND
+
+npx create-next-app@latest frontend
+
+cd frontend
+npm run dev
+
+
+Configurações Base:
+
+lib/api.ts
+
+lib/auth.ts
+
+
+Componentes Base:
+
+components/ProtectedRoute.tsx
+
+components/Navbar.tsx
+
+
+Páginas:
+
+/login/page.tsx
+
+/dashboard/page.tsx
+
+
+Continuar com asoutras páginas e UI, está tudo no zip

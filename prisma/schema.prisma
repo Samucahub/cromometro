@@ -1,0 +1,320 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PendingUser {
+  id           String   @id @default(uuid())
+  name         String
+  username     String   @unique
+  email        String   @unique
+  password     String
+  verificationCode String
+  verificationCodeExpiresAt DateTime
+
+  createdAt    DateTime @default(now())
+}
+
+model User {
+  id           String       @id @default(uuid())
+  name         String
+  username     String       @unique
+  email        String       @unique
+  password     String?      // Optional for OAuth users
+  role         UserRole     @default(USER)
+
+  // Email verification for 2FA
+  emailVerified Boolean      @default(false)
+  verificationCode String?
+  verificationCodeExpiresAt DateTime?
+
+  // OAuth providers
+  googleId     String?      @unique
+  githubId     String?      @unique
+
+  internship   Internship?
+  tasks        Task[]
+  timeEntries  TimeEntry[]
+  projects     Project[]
+  statuses     Status[]
+  
+  // New: Collaborative projects
+  projectMemberships ProjectMember[] @relation("ProjectMemberships")
+  projectInvites     ProjectInvitation[]
+  taskAssignments    TaskAssignee[]
+  leadershipTransfersFrom ProjectLeadershipTransfer[] @relation("LeadershipFrom")
+  leadershipTransfersTo   ProjectLeadershipTransfer[] @relation("LeadershipTo")
+  documents          Document[]       @relation("DocumentAuthor")
+  refreshTokens      RefreshToken[]   @relation("UserRefreshTokens")
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model RefreshToken {
+  id           String   @id @default(uuid())
+  token        String   @unique
+  userId       String
+  user         User     @relation("UserRefreshTokens", fields: [userId], references: [id], onDelete: Cascade)
+  
+  expiresAt    DateTime
+  revoked      Boolean  @default(false)
+  revokedAt    DateTime?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Internship {
+  id              String   @id @default(uuid())
+  company         String
+  institute       String
+  companyMentor   String?
+  instituteMentor String?
+  totalHours      Int?
+  startDate       DateTime
+  endDate         DateTime
+
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Status {
+  id        String    @id @default(uuid())
+  name      String
+  order     Int       @default(0)
+  
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional: scope status to a specific collaborative project
+  projectId String?
+
+  tasks     Task[]
+  projects  Project[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([userId, name, projectId])
+  @@index([userId, order])
+  @@index([projectId, order])
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  color       String   @default("blue")
+  order       Int      @default(0)
+  isCollaborative Boolean @default(false) // Differentiates between simple and collaborative projects
+
+  userId      String   // Creator/Owner
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  statusId    String?  // Optional - only required for simple projects
+  status      Status?  @relation(fields: [statusId], references: [id])
+
+  // New: Members and invites for collaborative projects
+  members     ProjectMember[]
+  invites     ProjectInvitation[]
+
+  tasks       Task[]
+
+  leadershipTransfers ProjectLeadershipTransfer[]
+  documents   Document[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, statusId])
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  priority    TaskPriority? // Optional - only for collaborative tasks
+  order       Int          @default(0)
+  dueDate     DateTime?
+  startDate   DateTime?
+
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  statusId    String
+  status      Status       @relation(fields: [statusId], references: [id])
+
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  assignees    TaskAssignee[]
+
+  timeEntries TimeEntry[]
+  documents   Document[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId, statusId])
+  @@index([projectId])
+}
+
+model TaskAssignee {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([taskId, userId])
+  @@index([userId])
+}
+
+model TimeEntry {
+  id        String   @id @default(uuid())
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+
+  userId    String
+  taskId    String
+
+  user      User     @relation(fields: [userId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ProjectRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  role      ProjectRole @default(VIEWER)
+
+  userId    String
+  user      User     @relation("ProjectMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+}
+
+model ProjectInvitation {
+  id        String   @id @default(uuid())
+  email     String
+  role      ProjectRole @default(VIEWER)
+  status    InvitationStatus @default(PENDING) // PENDING, ACCEPTED, DECLINED
+
+  invitedById String
+  invitedBy  User     @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  acceptedAt DateTime?
+
+  @@unique([projectId, email])
+  @@index([email])
+  @@index([projectId])
+}
+
+model ProjectLeadershipTransfer {
+  id        String   @id @default(uuid())
+  status    InvitationStatus @default(PENDING)
+
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fromUserId String
+  fromUser   User     @relation("LeadershipFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  toUserId   String
+  toUser     User     @relation("LeadershipTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  respondedAt DateTime?
+
+  @@index([projectId])
+  @@index([toUserId])
+  @@unique([projectId, toUserId, status])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  title       String
+  content     String   @db.Text  // Markdown content
+  slug        String?  // For friendly URLs
+  
+  // Optional relations (a document can be linked to only one thing)
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  taskId         String?
+  task           Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  // Author/Creator
+  authorId    String
+  author      User     @relation("DocumentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  isPublic    Boolean  @default(true)  // If other members can see
+  isPinned    Boolean  @default(false) // Highlight important documents
+  
+  tags        String[] // For organization
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([projectId])
+  @@index([taskId])
+  @@index([authorId])
+}

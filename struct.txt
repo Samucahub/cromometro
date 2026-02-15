@@ -1,0 +1,69 @@
+semstress-backend/
+│
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+│
+├── src/
+│   │
+│   ├── app.module.ts
+│   ├── main.ts
+│   │
+│   ├── auth/
+│   │   ├── auth.module.ts
+│   │   ├── auth.controller.ts
+│   │   ├── auth.service.ts
+│   │   ├── dto/
+│   │   │   ├── login.dto.ts
+│   │   │   └── register.dto.ts
+│   │   └── jwt.strategy.ts
+│   │
+│   ├── users/
+│   │   ├── users.module.ts
+│   │   └── users.service.ts
+│   │
+│   ├── internship/
+│   │   ├── internship.module.ts
+│   │   ├── internship.controller.ts
+│   │   ├── internship.service.ts
+│   │   └── dto/
+│   │       └── upsert-internship.dto.ts
+│   │
+│   ├── tasks/
+│   │   ├── tasks.module.ts
+│   │   ├── tasks.controller.ts
+│   │   ├── tasks.service.ts
+│   │   └── dto/
+│   │       ├── create-task.dto.ts
+│   │       └── update-task.dto.ts
+│   │
+│   ├── time-entries/
+│   │   ├── time-entries.module.ts
+│   │   ├── time-entries.controller.ts
+│   │   ├── time-entries.service.ts
+│   │   └── dto/
+│   │       ├── create-time-entry.dto.ts
+│   │       └── update-time-entry.dto.ts
+│   │
+│   ├── reports/
+│   │   ├── reports.module.ts
+│   │   ├── reports.controller.ts
+│   │   └── reports.service.ts
+│   │
+│   ├── common/
+│   │   ├── decorators/
+│   │   │   └── current-user.decorator.ts
+│   │   ├── guards/
+│   │   │   └── jwt-auth.guard.ts
+│   │   └── prisma/
+│   │       ├── prisma.module.ts
+│   │       └── prisma.service.ts
+│   │
+│   └── config/
+│       └── env.ts
+│
+├── .env
+├── .env.example
+├── package.json
+├── tsconfig.json
+└── README.md

@@ -1,0 +1,38 @@
+src/
+│
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx              // landing (simples)
+│   │
+│   ├── login/
+│   │   └── page.tsx
+│   ├── register/
+│   │   └── page.tsx
+│   │
+│   ├── dashboard/
+│   │   └── page.tsx
+│   ├── tasks/
+│   │   └── page.tsx
+│   ├── time-entries/
+│   │   └── page.tsx
+│   ├── reports/
+│   │   └── page.tsx
+│   │
+│   └── api/
+│
+├── components/
+│   ├── ui/
+│   │   ├── Button.tsx
+│   │   ├── Input.tsx
+│   │   └── Card.tsx
+│   │
+│   ├── Navbar.tsx
+│   └── ProtectedRoute.tsx
+│
+├── lib/
+│   ├── api.ts
+│   ├── auth.ts
+│   └── types.ts
+│
+└── styles/
+    └── globals.css
