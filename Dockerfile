@@ -8,6 +8,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Instalar OpenSSL 1.1 (requerido por Prisma)
+RUN apk add --no-cache openssl libssl1.1
+
 # Copiar ficheiros de dependências
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
@@ -27,6 +30,9 @@ RUN npm run build
 FROM node:20-alpine AS production
 
 WORKDIR /app
+
+# Instalar OpenSSL 1.1 (requerido por Prisma)
+RUN apk add --no-cache openssl libssl1.1
 
 # Criar user não-root
 RUN addgroup -g 1001 -S appgroup && \
