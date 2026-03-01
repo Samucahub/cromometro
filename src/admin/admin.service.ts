@@ -261,6 +261,30 @@ export class AdminService {
       );
     }
 
+    // Tentar apagar de PendingUser primeiro (para users com status pendente)
+    const pendingUser = await this.prisma.pendingUser.findFirst({
+      where: {
+        OR: [
+          { id: userId },
+          { email: userId }, // Caso userId seja email
+          { username: userId }, // Caso userId seja username
+        ],
+      },
+    });
+
+    if (pendingUser) {
+      await this.prisma.pendingUser.delete({ where: { id: pendingUser.id } });
+      return {
+        id: pendingUser.id,
+        name: pendingUser.name,
+        username: pendingUser.username,
+        email: pendingUser.email,
+        role: 'USER',
+        status: 'PENDING',
+      };
+    }
+
+    // Se não for pendente, apagar de User (lógica original)
     await this.prisma.internship.deleteMany({ where: { userId } });
     await this.prisma.timeEntry.deleteMany({ where: { userId } });
 

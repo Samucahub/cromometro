@@ -94,7 +94,11 @@ export class AuthService {
     
     const emailToSend = dto.email || `${dto.username}@pending.local`;
     if (dto.email) {
-      await this.emailService.sendVerificationEmail(dto.email, verificationCode, dto.name || dto.username);
+      // Envio de email não deve bloquear o registo
+      this.emailService.sendVerificationEmail(dto.email, verificationCode, dto.name || dto.username)
+        .catch(err => {
+          this.logger.error(`Failed to send verification email to ${dto.email}: ${err.message}`, err.stack, 'AuthService');
+        });
     }
 
     this.logger.logAuth('REGISTER_INITIATED', dto.email || dto.username, {
