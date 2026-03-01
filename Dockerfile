@@ -44,6 +44,7 @@ COPY prisma ./prisma/
 
 # Instalar apenas dependências de produção
 RUN npm ci --omit=dev && \
+  npm install prisma --no-save && \
     npx prisma generate && \
     npm cache clean --force
 
@@ -59,4 +60,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 
 EXPOSE 3001
 
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy || npx prisma db push && node dist/main"]

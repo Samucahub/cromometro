@@ -5,6 +5,9 @@ import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Railway/Reverse proxy support (required for rate limiting with X-Forwarded-For)
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
   
   app.useGlobalPipes(
     new ValidationPipe({
