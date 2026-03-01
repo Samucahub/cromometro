@@ -7,10 +7,11 @@ export class CustomLoggerService implements LoggerService {
   private logger: winston.Logger;
 
   constructor() {
-    // Use /tmp in production (Railway/cloud) where /app is read-only
-    const isProduction = process.env.NODE_ENV === 'production';
-    const logsDir = isProduction 
-      ? '/tmp/logs' 
+    // Only enable file logging if explicitly requested via env var
+    // This prevents filesystem permission errors on Railway/cloud platforms
+    const enableFileLogging = process.env.ENABLE_FILE_LOGS === 'true';
+    const logsDir = enableFileLogging 
+      ? (process.env.LOGS_DIR || '/tmp/logs')
       : path.join(process.cwd(), 'logs');
 
     const logFormat = winston.format.combine(
@@ -20,7 +21,7 @@ export class CustomLoggerService implements LoggerService {
       winston.format.json(),
     );
 
-    // Console transport (always enabled)
+    // Console transport (always enabled for Railway/cloud visibility)
     const transports: winston.transport[] = [
       new winston.transports.Console({
         format: winston.format.combine(
@@ -34,8 +35,8 @@ export class CustomLoggerService implements LoggerService {
       }),
     ];
 
-    // File transports (only in dev or if explicitly enabled in production)
-    if (!isProduction || process.env.ENABLE_FILE_LOGS === 'true') {
+    // File transports (disabled by default, opt-in only)
+    if (enableFileLogging) {
       transports.push(
         new winston.transports.File({
           filename: path.join(logsDir, 'app.log'),
@@ -72,8 +73,8 @@ export class CustomLoggerService implements LoggerService {
       new winston.transports.Console(),
     ];
 
-    // Add file handlers only in dev or if explicitly enabled
-    if (!isProduction || process.env.ENABLE_FILE_LOGS === 'true') {
+    // Add file exception/rejection handlers only if file logging enabled
+    if (enableFileLogging) {
       exceptionHandlers.push(
         new winston.transports.File({
           filename: path.join(logsDir, 'exceptions.log'),
